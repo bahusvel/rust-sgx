@@ -1,14 +1,14 @@
-#[cfg(target_env = "sgx")]
+
 extern crate mbedtls;
-#[cfg(target_env = "sgx")]
+
 extern crate sgx_isa;
 
-#[cfg(target_env = "sgx")]
+
 use sgx_isa::{Report, Targetinfo};
-#[cfg(target_env = "sgx")]
+
 use mbedtls::cipher::{Cipher, raw::{CipherId, CipherMode}};
 
-#[cfg(target_env = "sgx")]
+
 #[test]
 fn verify_mac() {
     let targetinfo = Targetinfo::from(Report::for_self());

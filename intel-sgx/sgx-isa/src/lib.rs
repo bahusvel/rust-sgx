@@ -28,9 +28,9 @@ extern crate serde;
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize};
 
-#[cfg(all(target_env = "sgx", feature = "sgxstd"))]
+#[cfg(feature = "sgxstd")]
 use std::os::fortanix_sgx::arch;
-#[cfg(all(target_env = "sgx", not(feature = "sgxstd")))]
+#[cfg(not(feature = "sgxstd"))]
 mod arch;
 use core::{convert::TryFrom, num::TryFromIntError, slice};
 
@@ -223,7 +223,7 @@ macro_rules! struct_def {
     };
     (@align bytes $($other:tt)*) => {};
     (@align type $ty:ident name $name:ident) => {
-        #[cfg(target_env = "sgx")]
+        
         impl AsRef<arch::$ty<[u8; $name::UNPADDED_SIZE]>> for $name {
             fn as_ref(&self) -> &arch::$ty<[u8; $name::UNPADDED_SIZE]> {
                 unsafe {
@@ -674,7 +674,7 @@ impl Report {
     ///
     /// let targetinfo_self = Targetinfo::from(Report::for_self());
     /// ```
-    #[cfg(target_env = "sgx")]
+    
     pub fn for_self() -> Self {
         let reportdata = arch::Align128([0; 64]);
         let targetinfo = arch::Align512([0; 512]);
@@ -683,7 +683,7 @@ impl Report {
         Report::try_copy_from(&out.0).unwrap()
     }
 
-    #[cfg(target_env = "sgx")]
+    
     pub fn for_target(targetinfo: &Targetinfo, reportdata: &[u8; 64]) -> Report {
         let reportdata = arch::Align128(*reportdata);
         let out = arch::ereport(targetinfo.as_ref(), &reportdata);
@@ -696,7 +696,7 @@ impl Report {
     ///
     /// Care should be taken that `check_mac` prevents timing attacks,
     /// in particular that the comparison happens in constant time. 
-    #[cfg(target_env = "sgx")]
+    
     pub fn verify<F, R>(&self, check_mac: F) -> R
     where
         F: FnOnce(&[u8; 16], &[u8; Report::TRUNCATED_SIZE], &[u8; 16]) -> R,
@@ -777,7 +777,7 @@ pub struct Keyrequest {
 impl Keyrequest {
     pub const UNPADDED_SIZE: usize = 512;
 
-    #[cfg(target_env = "sgx")]
+    
     pub fn egetkey(&self) -> Result<[u8; 16], ErrorCode> {
         match arch::egetkey(self.as_ref()) {
             Ok(k) => Ok(k.0),
